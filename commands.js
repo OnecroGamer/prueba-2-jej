@@ -546,7 +546,7 @@ var commands = exports.commands = {
 	},
         gm: 'ghostmode'
         ghostmode: function (target, room, user, connection) {
-        	var = /ghostmode on, /ghostmode off
+        	var = /ghostmode on, /ghostmode off;
         	if (/ghostmode on === true)
         	user.resetName();
         	if (/ghostmode off === true)
