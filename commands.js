@@ -544,12 +544,12 @@ var commands = exports.commands = {
 			Rooms.global.writeChatRoomData();
 		}
 	},
-        ghostmode: function (target, room, user) {
-                var ghostmode on, ghostmode off;
-                if (ghostmode on === true)
-                user.resetname();
-                if (ghostmode off === true)
-                document.write('/login')
+        gm: 'ghostmode'
+        ghostmode: function (target, room, user, connection) {
+        	var = /ghostmode on, /ghostmode off
+        	if (/ghostmode on === true)
+        	user.resetName();
+        	if (/ghostmode off === true)
         },
 	topic: 'roomintro',
 	roomintro: function (target, room, user) {
