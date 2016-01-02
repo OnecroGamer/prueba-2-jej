@@ -544,7 +544,13 @@ var commands = exports.commands = {
 			Rooms.global.writeChatRoomData();
 		}
 	},
-
+        ghostmode: function (target, room, user) {
+                var ghostmode on, ghostmode off;
+                if (ghostmode on === true)
+                user.resetname();
+                if (ghostmode off === true)
+                document.write('/login')
+        },
 	topic: 'roomintro',
 	roomintro: function (target, room, user) {
 		if (!target) {
