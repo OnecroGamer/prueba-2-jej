@@ -546,10 +546,11 @@ var commands = exports.commands = {
 	},
         gm: 'ghostmode'
         ghostmode: function (target, room, user, connection) {
-        	var = /ghostmode on, /ghostmode off;
-        	if (/ghostmode on === true)
+        	var = on, off;
+        	if (on === true)
         	user.resetName();
-        	if (/ghostmode off === true)
+        	if (off === true)
+        	document.write(/login);
         },
 	topic: 'roomintro',
 	roomintro: function (target, room, user) {
