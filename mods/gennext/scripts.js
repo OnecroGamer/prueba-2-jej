@@ -1,3 +1,5 @@
+'use strict';
+
 exports.BattleScripts = {
 	init: function () {
 		this.modData('Pokedex', 'cherrimsunshine').types = ['Grass', 'Fire'];
@@ -117,9 +119,12 @@ exports.BattleScripts = {
 		// Adaptability change
 		this.modData('Pokedex', 'crawdaunt').abilities['H'] = 'Tough Claws';
 
+		// Vespiquen
+		this.modData('Pokedex', 'vespiquen').abilities['1'] = 'Swarm';
+
 		// Every hidden ability becomes released
-		for (var i in this.data.FormatsData) {
+		for (let i in this.data.FormatsData) {
 			this.modData('FormatsData', i).unreleasedHidden = false;
 		}
-	}
+	},
 };

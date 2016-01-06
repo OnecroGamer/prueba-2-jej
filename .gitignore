@@ -1,9 +1,10 @@
-
+/config/*
 /logs/*
 /node_modules
-/gulp-cache
+/eslint-cache
 /chat-plugins/private.js
 npm-debug.log
+.eslintcache
 
 # boilerplate #
 ###############
@@ -47,11 +48,3 @@ local_settings.py
 
 pip-log.txt
 
-config/chatrooms.json
-config/authcasino.json
-config/botbannedusers.json
-config/hpl.json
-config/clans.json
-config/botphrases.json
-config/botbannedwords.json
-*.csv

@@ -1,6 +1,6 @@
+'use strict';
+
 // The server port - the port to run Pokemon Showdown under
-//exports.port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
-//exports.bindaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
 exports.port = 8000;
 
 // proxyip - proxy IPs with trusted X-Forwarded-For headers
@@ -8,15 +8,12 @@ exports.port = 8000;
 //   of strings. Each string should be either an IP address or a subnet given
 //   in CIDR notation. You should usually leave this as `false` unless you
 //   know what you are doing.
-exports.proxyip = ['127.0.0.0/8']; 
+exports.proxyip = false;
 
 // Pokemon of the Day - put a pokemon's name here to make it Pokemon of the Day
 //   The PotD will always be in the #2 slot (not #1 so it won't be a lead)
 //   in every Random Battle team.
 exports.potd = '';
-exports.superAdmins = {
-	"brekfree": 1
-};
 
 // crash guard - write errors to log file instead of crashing
 //   This is normally not recommended - if Node wants to crash, the
@@ -71,7 +68,7 @@ exports.loginserverpublickey = "-----BEGIN RSA PUBLIC KEY-----\n" +
 //   /hidejoins configuration for users.
 //   This feature can lag larger servers - turn this off if your server is
 //   getting more than 80 or so users.
-exports.reportjoins = false;
+exports.reportjoins = true;
 
 // report joins and leaves periodically - sends silent join and leave messages in batches
 //   This setting will only be effective if `reportjoins` is set to false, and users will
@@ -82,7 +79,7 @@ exports.reportjoinsperiod = 0;
 // report battles - shows messages like "OU battle started" in the lobby
 //   This feature can lag larger servers - turn this off if your server is
 //   getting more than 160 or so users.
-exports.reportbattles = false;
+exports.reportbattles = true;
 
 // report joins and leaves in battle - shows messages like "<USERNAME> joined" in battle
 //   Set this to false on large tournament servers where battles get a lot of joins and leaves.
@@ -135,7 +132,7 @@ exports.consoleips = ['127.0.0.1'];
 // then the config.js file will be reloaded when it is changed.
 // This can be used to change some settings using a text editor on
 // the server.
-exports.watchconfig = false;
+exports.watchconfig = true;
 
 // logchat - whether to log chat rooms.
 exports.logchat = false;
@@ -185,7 +182,7 @@ exports.appealurl = '';
 // replsocketprefix - the prefix for the repl sockets to be listening on
 // replsocketmode - the file mode bits to use for the repl sockets
 exports.replsocketprefix = './logs/repl/';
-exports.replsocketmode = 0700;
+exports.replsocketmode = 0o600;
 
 // permissions and groups:
 //   Each entry in `grouplist' is a seperate group. Some of the members are "special"
@@ -242,7 +239,7 @@ exports.grouplist = [
 		id: "admin",
 		name: "Administrator",
 		root: true,
-		globalonly: true
+		globalonly: true,
 	},
 	{
 		symbol: '&',
@@ -264,7 +261,6 @@ exports.grouplist = [
 		disableladder: true,
 		globalonly: true,
 		tournamentsmanagement: true,
-		rank: 7
 	},
 	{
 		symbol: '#',
@@ -278,7 +274,7 @@ exports.grouplist = [
 		declare: true,
 		modchatall: true,
 		roomonly: true,
-		tournamentsmanagement: true
+		tournamentsmanagement: true,
 	},
 	{
 		symbol: '\u2605',
@@ -289,7 +285,7 @@ exports.grouplist = [
 		modchat: true,
 		roomonly: true,
 		editroom: true,
-		joinbattle: true
+		joinbattle: true,
 	},
 	{
 		symbol: '@',
@@ -303,13 +299,13 @@ exports.grouplist = [
 		forcerename: true,
 		ip: true,
 		alts: '@u',
-		tournaments: true
+		tournaments: true,
 	},
 	{
 		symbol: '%',
 		id: "driver",
 		name: "Driver",
-		inherit: '\u2295',
+		inherit: '+',
 		jurisdiction: 'u',
 		announce: true,
 		warn: '\u2605u',
@@ -324,44 +320,18 @@ exports.grouplist = [
 		receiveauthmessages: true,
 		tournamentsmoderation: true,
 		jeopardy: true,
-		joinbattle: true
-	},
-	{
-		symbol: '\u00A5',
-		id: "youtuber",
-		name: "Youtuber",
-		inherit: '\u2295',
-		jurisdiction: 'u',
-		youtube: true,
-		warn: true,
-		kick: true
-	},
-	{
-		symbol: '\u2295',
-		id: "operator",
-		name: "Operator",
-		inherit: '+',
-		tournamentsmoderation: true,
-		tournaments: true
+		joinbattle: true,
 	},
 	{
 		symbol: '+',
 		id: "voice",
 		name: "Voice",
-		inherit: '$',
-		joinbattle: true,
-		broadcast: true
-	},
-	{
-		symbol: '$',
-		id: "destacado",
-		name: "Destacado",
 		inherit: ' ',
 		alts: 's',
-		broadcast: true
+		broadcast: true,
 	},
 	{
 		symbol: ' ',
-		ip: 's'
-	}
+		ip: 's',
+	},
 ];

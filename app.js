@@ -22,7 +22,11 @@
  *
  * Tools - from tools.js
  *
- *   Handles getting data about Pokemon, items, etc. *
+ *   Handles getting data about Pokemon, items, etc.
+ *
+ * Ladders - from ladders.js and ladders-remote.js
+ *
+ *   Handles Elo rating tracking for players.
  *
  * Simulator - from simulator.js
  *
@@ -40,17 +44,14 @@
  * @license MIT license
  */
 
+'use strict';
+
 /*********************************************************
  * Make sure we have everything set up correctly
  *********************************************************/
 
 // Make sure our dependencies are available, and install them if they
 // aren't
-
-/* ----------------Data-Directory------------*/
-global.DATA_DIR = (process.env.OPENSHIFT_DATA_DIR) ? process.env.OPENSHIFT_DATA_DIR : './config/';
-global.LOGS_DIR = (process.env.OPENSHIFT_DATA_DIR) ? (process.env.OPENSHIFT_DATA_DIR + 'logs/') : './logs/';
-/* ------------------------------------------*/
 
 function runNpm(command) {
 	if (require.main !== module) throw new Error("Dependencies unmet");
@@ -61,45 +62,31 @@ function runNpm(command) {
 	process.exit(0);
 }
 
-var isLegacyEngine = !(''.includes);
-
-var fs = require('fs');
-var path = require('path');
+const fs = require('fs');
+const path = require('path');
 try {
 	require('sugar');
-	if (isLegacyEngine) require('es6-shim');
 } catch (e) {
 	runNpm('install --production');
-}
-if (isLegacyEngine && !(''.includes)) {
-	runNpm('update --production');
 }
 
 /*********************************************************
  * Load configuration
  *********************************************************/
 
+try {
+	require.resolve('./config/config.js');
+} catch (err) {
+	if (err.code !== 'MODULE_NOT_FOUND') throw err; // should never happen
 
-// Synchronously, since it's needed before we can start the server
-if (!fs.existsSync('./config/config.js')) {
+	// Copy it over synchronously from config-example.js since it's needed before we can start the server
 	console.log("config.js doesn't exist - creating one with default settings...");
-	fs.writeFileSync('config/config.js',
-		fs.readFileSync('config/config-example.js')
+	fs.writeFileSync(path.resolve(__dirname, 'config/config.js'),
+		fs.readFileSync(path.resolve(__dirname, 'config/config-example.js'))
 	);
+} finally {
+	global.Config = require('./config/config.js');
 }
-
-if (!fs.existsSync(DATA_DIR + "avatars/")) {
-	fs.mkdirSync(DATA_DIR + "avatars/");
-}
-
-if (!fs.existsSync(LOGS_DIR)) {
-	fs.mkdirSync(LOGS_DIR);
-	fs.mkdirSync(LOGS_DIR + 'chat/');
-	fs.mkdirSync(LOGS_DIR + 'modlog/');
-	fs.mkdirSync(LOGS_DIR + 'repl/');
-}
-
-global.Config = require('./config/config.js');
 
 if (Config.watchconfig) {
 	fs.watchFile(path.resolve(__dirname, 'config/config.js'), function (curr, prev) {
@@ -115,41 +102,27 @@ if (Config.watchconfig) {
 
 // Autoconfigure the app when running in cloud hosting environments:
 try {
-	var cloudenv = require('cloud-env');
+	let cloudenv = require('cloud-env');
 	Config.bindaddress = cloudenv.get('IP', Config.bindaddress || '');
 	Config.port = cloudenv.get('PORT', Config.port);
 } catch (e) {}
 
-if (require.main === module && process.argv[2] && parseInt(process.argv[2])) {
-	Config.port = parseInt(process.argv[2]);
-	Config.ssl = null;
+if (require.main === module && process.argv[2]) {
+	let port = parseInt(process.argv[2]); // eslint-disable-line radix
+	if (port) {
+		Config.port = port;
+		Config.ssl = null;
+	}
 }
 
 /*********************************************************
  * Set up most of our globals
  *********************************************************/
 
-/**
- * Converts anything to an ID. An ID must have only lowercase alphanumeric
- * characters.
- * If a string is passed, it will be converted to lowercase and
- * non-alphanumeric characters will be stripped.
- * If an object with an ID is passed, its ID will be returned.
- * Otherwise, an empty string will be returned.
- */
-global.toId = function (text) {
-	if (text && text.id) {
-		text = text.id;
-	} else if (text && text.userid) {
-		text = text.userid;
-	}
-	if (typeof text !== 'string' && typeof text !== 'number') return '';
-	return ('' + text).toLowerCase().replace(/[^a-z0-9]+/g, '');
-};
-
 global.Monitor = require('./monitor.js');
 
 global.Tools = require('./tools.js').includeFormats();
+global.toId = Tools.getId;
 
 global.LoginServer = require('./loginserver.js');
 
@@ -175,21 +148,21 @@ global.Tournaments = require('./tournaments');
 try {
 	global.Dnsbl = require('./dnsbl.js');
 } catch (e) {
-	global.Dnsbl = {query:function () {}};
+	global.Dnsbl = {query: function () {}, reverse: require('dns').reverse};
 }
 
 global.Cidr = require('./cidr.js');
 
 if (Config.crashguard) {
 	// graceful crash - allow current battles to finish before restarting
-	var lastCrash = 0;
+	let lastCrash = 0;
 	process.on('uncaughtException', function (err) {
-		var dateNow = Date.now();
-		var quietCrash = require('./crashlogger.js')(err, 'The main process', true);
+		let dateNow = Date.now();
+		let quietCrash = require('./crashlogger.js')(err, 'The main process', true);
 		quietCrash = quietCrash || ((dateNow - lastCrash) <= 1000 * 60 * 5);
 		lastCrash = Date.now();
 		if (quietCrash) return;
-		var stack = ("" + err.stack).escapeHTML().split("\n").slice(0, 2).join("<br />");
+		let stack = ("" + err.stack).escapeHTML().split("\n").slice(0, 2).join("<br />");
 		if (Rooms.lobby) {
 			Rooms.lobby.addRaw('<div class="broadcast-red"><b>THE SERVER HAS CRASHED:</b> ' + stack + '<br />Please restart the server.</div>');
 			Rooms.lobby.addRaw('<div class="broadcast-red">You will not be able to talk in the lobby or start new battles until the server restarts.</div>');
@@ -214,8 +187,8 @@ global.TeamValidator = require('./team-validator.js');
 fs.readFile(path.resolve(__dirname, 'config/ipbans.txt'), function (err, data) {
 	if (err) return;
 	data = ('' + data).split("\n");
-	var rangebans = [];
-	for (var i = 0; i < data.length; i++) {
+	let rangebans = [];
+	for (let i = 0; i < data.length; i++) {
 		data[i] = data[i].split('#')[0].trim();
 		if (!data[i]) continue;
 		if (data[i].includes('/')) {
@@ -231,6 +204,4 @@ fs.readFile(path.resolve(__dirname, 'config/ipbans.txt'), function (err, data) {
  * Start up the REPL server
  *********************************************************/
 
-//require('./repl.js').start('app', function (cmd) { return eval(cmd); });
-global.League = require('./league.js'); global.Shop = require('./shop.js'); global.Bot = require('./bot.js');
-global.Clans = require('./clans.js'); global.War = require('./war.js'); global.tour = new (require('./tour.js').tour)(); global.teamTour = require('./teamtour.js');
+require('./repl.js').start('app', function (cmd) { return eval(cmd); });
